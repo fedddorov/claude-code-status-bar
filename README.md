@@ -30,6 +30,90 @@ limit is still green, and vice-versa.
 
 ---
 
+## Requirements
+
+- **Claude Code** v2.1.153 or newer (the `effort` field in the status-line JSON
+  was added around then; everything else degrades gracefully on older builds).
+- `bash`, `jq`, `awk`, `sed` on your `PATH` (all standard on macOS/Linux; on
+  macOS install `jq` via `brew install jq`).
+- A terminal with 256-color support and a UTF-8 font (for `●`, `█`, `░`, `│`).
+
+---
+
+## Install
+
+### Just paste this prompt into Claude Code
+
+The easiest way — copy the prompt below and paste it into Claude Code. It will
+fetch the script, wire it into your settings, and show you a preview, without
+touching the rest of your config:
+
+```text
+Set up my Claude Code status line from https://github.com/fedddorov/claude-code-status-bar.
+
+1. Download https://raw.githubusercontent.com/fedddorov/claude-code-status-bar/main/statusline.sh
+   to ~/.claude/statusline.sh and make it executable (chmod +x).
+2. In ~/.claude/settings.json, add (or replace) the "statusLine" key with:
+   { "type": "command", "command": "bash ~/.claude/statusline.sh" }
+   Use jq and keep all my other existing settings intact; back the file up first.
+3. Preview it by piping a sample JSON payload into the script and showing me the
+   rendered line, then tell me to restart Claude Code to see it live.
+```
+
+### One-liner (clone + run the installer)
+
+```bash
+git clone https://github.com/fedddorov/claude-code-status-bar.git
+cd claude-code-status-bar
+./install.sh
+```
+
+The installer:
+
+1. Copies `statusline.sh` to `~/.claude/statusline.sh` (honors
+   `$CLAUDE_CONFIG_DIR` if you set it).
+2. Backs up your existing `~/.claude/settings.json`, then adds **only** the
+   `statusLine` key — all your other settings are left untouched.
+
+Restart Claude Code (or open a new session) and the bar appears.
+
+### Manual
+
+1. Copy `statusline.sh` to `~/.claude/statusline.sh` and `chmod +x` it.
+2. Add this to `~/.claude/settings.json`:
+
+   ```json
+   {
+     "statusLine": {
+       "type": "command",
+       "command": "bash ~/.claude/statusline.sh"
+     }
+   }
+   ```
+
+### Try it without installing
+
+You can pipe a fake payload straight into the script to preview a state:
+
+```bash
+echo '{
+  "effort": { "level": "high" },
+  "context_window": {
+    "used_percentage": 18,
+    "total_input_tokens": 110000,
+    "total_output_tokens": 17000
+  },
+  "rate_limits": {
+    "five_hour": { "used_percentage": 62 },
+    "seven_day": { "used_percentage": 24 }
+  }
+}' | COLUMNS=80 bash statusline.sh
+```
+
+Change the numbers to watch the colors cross the thresholds below.
+
+---
+
 ## Anatomy
 
 Left to right, the line is built from these segments (separated by a dim `│`):
@@ -100,92 +184,6 @@ Applies to **both** the bar and the `%`. Thresholds are low on purpose — on a
 
 > Labels (`5h`, `7d`, `/max`) and separators are always dim grey — only the
 > values carry color, so your eye goes straight to the number that matters.
-
----
-
-## Requirements
-
-- **Claude Code** v2.1.153 or newer (the `effort` field in the status-line JSON
-  was added around then; everything else degrades gracefully on older builds).
-- `bash`, `jq`, `awk`, `sed` on your `PATH` (all standard on macOS/Linux; on
-  macOS install `jq` via `brew install jq`).
-- A terminal with 256-color support and a UTF-8 font (for `●`, `█`, `░`, `│`).
-
----
-
-## Install
-
-### Just paste this prompt into Claude Code
-
-The easiest way — copy the prompt below and paste it into Claude Code. It will
-fetch the script, wire it into your settings, and show you a preview, without
-touching the rest of your config:
-
-```text
-Set up my Claude Code status line from https://github.com/fedddorov/claude-code-status-bar.
-
-1. Download https://raw.githubusercontent.com/fedddorov/claude-code-status-bar/main/statusline.sh
-   to ~/.claude/statusline.sh and make it executable (chmod +x).
-2. In ~/.claude/settings.json, add (or replace) the "statusLine" key with:
-   { "type": "command", "command": "bash ~/.claude/statusline.sh" }
-   Use jq and keep all my other existing settings intact; back the file up first.
-3. Preview it by piping a sample JSON payload into the script and showing me the
-   rendered line, then tell me to restart Claude Code to see it live.
-```
-
-### One-liner (clone + run the installer)
-
-```bash
-git clone https://github.com/fedddorov/claude-code-status-bar.git
-cd claude-code-status-bar
-./install.sh
-```
-
-The installer:
-
-1. Copies `statusline.sh` to `~/.claude/statusline.sh` (honors
-   `$CLAUDE_CONFIG_DIR` if you set it).
-2. Backs up your existing `~/.claude/settings.json`, then adds **only** the
-   `statusLine` key — all your other settings are left untouched.
-
-Restart Claude Code (or open a new session) and the bar appears.
-
-### Manual
-
-1. Copy `statusline.sh` to `~/.claude/statusline.sh` and `chmod +x` it.
-2. Add this to `~/.claude/settings.json`:
-
-   ```json
-   {
-     "statusLine": {
-       "type": "command",
-       "command": "bash ~/.claude/statusline.sh"
-     }
-   }
-   ```
-
----
-
-## Try it without installing
-
-You can pipe a fake payload straight into the script to preview a state:
-
-```bash
-echo '{
-  "effort": { "level": "high" },
-  "context_window": {
-    "used_percentage": 18,
-    "total_input_tokens": 110000,
-    "total_output_tokens": 17000
-  },
-  "rate_limits": {
-    "five_hour": { "used_percentage": 62 },
-    "seven_day": { "used_percentage": 24 }
-  }
-}' | COLUMNS=80 bash statusline.sh
-```
-
-Change the numbers to watch the colors cross the thresholds above.
 
 ---
 
