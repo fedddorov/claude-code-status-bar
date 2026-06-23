@@ -127,7 +127,7 @@ Applies to **both** the bar and the `%`. Thresholds are low on purpose — on a
 ### One-liner (clone + run the installer)
 
 ```bash
-git clone https://github.com/<your-username>/claude-code-status-bar.git
+git clone https://github.com/fedddorov/claude-code-status-bar.git
 cd claude-code-status-bar
 ./install.sh
 ```
