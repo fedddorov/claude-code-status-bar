@@ -3,12 +3,10 @@
 A minimalist, color-coded status line for [Claude Code](https://code.claude.com).
 It packs the four things you actually glance at — **reasoning effort**,
 **context window usage**, **token count**, and **rate limits** — into one
-right-aligned line that changes color from green → yellow → orange → red as each
-value climbs.
+compact line that changes color from green → yellow → orange → red as each value
+climbs.
 
-```
-                              ● high │ ██░░░░░░░░ 18%  127k/1.0M │ 5h 62% │ 7d 24%
-```
+![claude-code-status-bar](docs/status-bar.png)
 
 The whole thing is a single self-contained `statusline.sh` (Bash + `jq` + `awk`).
 No daemon, no Node, no config file.
@@ -18,20 +16,14 @@ No daemon, no Node, no config file.
 ## What it looks like
 
 Claude Code feeds the script a JSON blob on every redraw; the script prints one
-colored, right-aligned line. Colors below are approximated with emoji — in the
-terminal they are soft, muted 256-color tones, not bright primaries.
+colored line. The screenshot above shows three real states (rendered straight
+from the script's own output):
 
-**Fresh session, light load**
-
-> 🟢 `● low`  │  🟢 `░░░░░░░░░░ 2%`   `12k/1.0M`  │  🟢 `5h 4%`  │  🟢 `7d 9%`
-
-**Mid-session, medium effort, warming up**
-
-> 🟡 `● medium`  │  🟡 `█░░░░░░░░░ 12%`   `74k/1.0M`  │  🟡 `5h 58%`  │  🟢 `7d 31%`
-
-**Heavy session, high effort, limits getting tight**
-
-> 🔴 `● high`  │  🔴 `██░░░░░░░░ 22%`   `220k/1.0M`  │  🔴 `5h 93%`  │  🟠 `7d 82%`
+- **Fresh session, light load** — `● low` and everything green.
+- **Mid-session, medium effort** — effort and context warming to yellow, the
+  5-hour limit at 58%.
+- **Heavy session, high effort** — `● high`, context at 22%, the 5-hour limit
+  near its cap.
 
 Each segment colors **independently** — effort can be red while your weekly
 limit is still green, and vice-versa.
@@ -58,9 +50,8 @@ reasoning      context bar  ctx%     used   max      5-hour      7-day
 | **5h limit** | `5h 62%` | Percentage of the 5-hour rate limit consumed. Hidden if unavailable. | `rate_limits.five_hour.used_percentage` |
 | **7d limit** | `7d 24%` | Percentage of the 7-day (weekly) rate limit consumed. Hidden if unavailable. | `rate_limits.seven_day.used_percentage` |
 
-The line is **right-aligned**: it is left-padded with spaces so it ends flush
-against the terminal's right edge, recomputed on every redraw (so it follows
-window resizes).
+The line is **left-aligned** — segments render in the order above and the line
+is printed as-is, with no padding.
 
 ---
 
@@ -123,6 +114,24 @@ Applies to **both** the bar and the `%`. Thresholds are low on purpose — on a
 ---
 
 ## Install
+
+### Just paste this prompt into Claude Code
+
+The easiest way — copy the prompt below and paste it into Claude Code. It will
+fetch the script, wire it into your settings, and show you a preview, without
+touching the rest of your config:
+
+```text
+Set up my Claude Code status line from https://github.com/fedddorov/claude-code-status-bar.
+
+1. Download https://raw.githubusercontent.com/fedddorov/claude-code-status-bar/main/statusline.sh
+   to ~/.claude/statusline.sh and make it executable (chmod +x).
+2. In ~/.claude/settings.json, add (or replace) the "statusLine" key with:
+   { "type": "command", "command": "bash ~/.claude/statusline.sh" }
+   Use jq and keep all my other existing settings intact; back the file up first.
+3. Preview it by piping a sample JSON payload into the script and showing me the
+   rendered line, then tell me to restart Claude Code to see it live.
+```
 
 ### One-liner (clone + run the installer)
 
@@ -190,10 +199,10 @@ Everything lives in `statusline.sh` and is easy to tweak:
   `hue_eff` (effort) functions.
 - **Effort label** — the effort segment prints `● <level>`. To shorten it (e.g.
   first letter only), change the line that builds `out` in the effort block.
-- **Alignment** — the script right-aligns by left-padding to `$COLUMNS`. Delete
-  the final padding block and just `echo "$out"` for a left-aligned bar. If your
-  terminal wraps when the line fills the last column, change `cols` to
-  `$((cols - 1))`.
+- **Alignment** — the bar is left-aligned (the script ends with `echo "$out"`).
+  To right-align it instead, replace that final line with a block that pads
+  `$out` on the left up to `$COLUMNS` (subtract the visible width — i.e. ANSI
+  stripped, multi-byte glyphs counted as one column).
 
 ---
 
@@ -203,10 +212,8 @@ Everything lives in `statusline.sh` and is easy to tweak:
 - `fmt_tok` renders token counts compactly (`1234` → `1k`, `1500000` → `1.5M`).
 - `hue*` helpers map a number/level to an ANSI color via `awk` / `case`.
 - The context bar is 10 cells; filled count is `round(used% / 10)`.
-- Right-alignment measures the **visible** width by stripping ANSI escape codes
-  and counting code points in a locale-independent way (it drops UTF-8
-  continuation bytes `0x80–0xBF`, so multi-byte glyphs like `●`/`█` count as one
-  column each), then left-pads with spaces to `$COLUMNS`.
+- The final line is printed as-is (`echo "$out"`), so it sits at the left edge
+  of the status area.
 
 ---
 

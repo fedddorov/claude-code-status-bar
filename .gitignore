@@ -8,3 +8,4 @@
 
 # Local backups produced by install.sh
 settings.json.bak.*
+.playwright-mcp/

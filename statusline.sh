@@ -56,13 +56,4 @@ fi
 out="${out}  ${tok}"
 [ -n "$fiveh" ] && out="${out}${sep}${DIM}5h${R} $(hue "$fiveh")$(printf '%.0f' "$fiveh")%${R}"
 [ -n "$week" ]  && out="${out}${sep}${DIM}7d${R} $(hue "$week")$(printf '%.0f' "$week")%${R}"
-
-# right-align: pad left so the line ends at the terminal's right edge.
-# visible width = code points after stripping ANSI (locale-independent: drop
-# UTF-8 continuation bytes 0x80-0xBF, then count remaining bytes).
-plain=$(printf '%s' "$out" | sed -E $'s/\033\\[[0-9;]*m//g')
-len=$(printf '%s' "$plain" | LC_ALL=C tr -d '\200-\277' | LC_ALL=C wc -c | tr -d ' ')
-cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 80)}
-pad=$((cols - len))
-[ "$pad" -lt 0 ] && pad=0
-printf '%*s%s\n' "$pad" '' "$out"
+echo "$out"
