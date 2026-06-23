@@ -1,0 +1,10 @@
+# macOS
+.DS_Store
+
+# Editor / tooling
+*.swp
+.idea/
+.vscode/
+
+# Local backups produced by install.sh
+settings.json.bak.*
